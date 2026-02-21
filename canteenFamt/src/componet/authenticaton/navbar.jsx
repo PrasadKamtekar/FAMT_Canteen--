@@ -2,7 +2,7 @@ import { Link } from "react-router-dom"
 function navbar() {
     return (
         <div>
-            <div className="h-[10dvh] w-full bg-[#0F6657] flex justify-between items-center py-[2rem] px-[4rem]">
+            <div id="nav" className="h-[10dvh] w-full bg-[#0F6657] flex justify-between items-center py-[2vw] px-[4vw]">
                 <h1 className="text-[1.8vw] font-bold text-[#F8FAFC]">
                     FAMT<span className="text-[#FBA808]">CANTEEN</span>
                 </h1>

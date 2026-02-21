@@ -19,7 +19,7 @@ function forgotpassword() {
                         className="bg-gray-200 w-[100%] p-[0.6vw] text-[0.8vw] rounded-lg outline-none"
                     />
                    
-                        <Link to="/emailverify" className="bg-[#FBA808] p-[0.52vw] rounded-lg text-[1vw] text-[#F8FAFC]"> Recover password </Link>
+                        <Link to="/emailverify" className="bg-[#FBA808] text-center p-[0.52vw] rounded-lg text-[1vw] text-[#F8FAFC]"> Recover password </Link>
                    
                   
 
