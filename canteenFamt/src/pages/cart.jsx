@@ -1,11 +1,16 @@
 import { ChevronLeft } from 'lucide-react';
-import CartItemList from "./cartItemList.jsx"
+import CartItemList from "../componet/Dashboard/userDash/cartItemList.jsx"
+import { useNavigate } from 'react-router-dom';
 function cart() {
+    const navigate = useNavigate();
     return (
         <div>
             {/** nav */}
             <div className="bg-[#ffffff] flex items-center gap-4 pl-[4vw] h-[8dvh]  w-full shadow-sm ">
-                <ChevronLeft />
+                <button onClick={()=>{
+                    navigate(-1)
+                }}> <ChevronLeft /></button>
+               
                 <h1 className="font-semibold tracking-wider text-[1.3vw]">My <span className="text-[#FBA808]">cart</span></h1>
 
             </div>

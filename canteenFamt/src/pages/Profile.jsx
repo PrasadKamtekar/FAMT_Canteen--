@@ -1,12 +1,18 @@
 import { ChevronLeft } from 'lucide-react';
-import CartItemList from "./cartItemList.jsx"
+import { useNavigate } from 'react-router-dom';
 
 function Profile() {
+    const navigate = useNavigate();
     return (
         <>
             {/** nav */}
             <div className="bg-[#ffffff] flex items-center gap-4 pl-[4vw] h-[8dvh]  shadow-sm ">
-                <ChevronLeft />
+                <button onClick={()=> {
+                    navigate(-1);
+                }}>
+                    <ChevronLeft />
+                </button>
+
                 <h1 className="font-semibold tracking-wider text-[1.3vw]">My <span className="text-[#FBA808]">Profile</span></h1>
 
             </div>
@@ -18,7 +24,7 @@ function Profile() {
                             <button className='text-[1vw] tracking-wider font-medium  text-gray-700'>Edit</button>
                         </div>
                         <div className="w-[10vw] h-[20vh]   text-center">
-                            <img src="https://4kwallpapers.com/images/wallpapers/iron-man-marvel-superheroes-amoled-pitch-black-minimal-art-750x1334-6293.png" alt="" className=" w-[10vw] h-[20vh]  rounded-full text-center object-cover"/>
+                            <img src="https://4kwallpapers.com/images/wallpapers/iron-man-marvel-superheroes-amoled-pitch-black-minimal-art-750x1334-6293.png" alt="" className=" w-[10vw] h-[20vh]  rounded-full text-center object-cover" />
                         </div>
                         <div className="flex flex-col justify-center items-center gap-2 w-full ">
                             <div className='w-[80%]'>

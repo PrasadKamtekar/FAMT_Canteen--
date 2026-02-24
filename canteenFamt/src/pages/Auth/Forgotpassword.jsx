@@ -1,7 +1,7 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 
-function forgotpassword() {
+function Forgotpassword() {
     return (
        
             <div className="bg-[#0F6657] w-[23vw] pt-[2vw] pb-[1vw] rounded-[0.6vw]">
@@ -29,4 +29,4 @@ function forgotpassword() {
     )
 }
 
-export default forgotpassword
+export default Forgotpassword

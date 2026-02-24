@@ -1,6 +1,8 @@
 import { CircleUserRound } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 function HomeNav() {
+    const navigate = useNavigate();
     return (
         <div id="nav" className="h-[10dvh] flex justify-between items-center px-[4vw] ">
 
@@ -12,8 +14,14 @@ function HomeNav() {
                 </span>
             </h1>
 
-            <div className="bg-[#FBA808] mt-[5vh] rounded-full p-[0.5vw]">
-                <CircleUserRound size={24} strokeWidth={1} />
+            <div >
+                <button onClick={ ()=>{
+                    navigate('/profile');
+                }
+                    
+                } className="bg-[#FBA808] mt-[5vh] rounded-full p-[0.5vw] hover:bg-white">
+                    <CircleUserRound size={24} strokeWidth={1} />
+                </button>
             </div>
 
         </div>
