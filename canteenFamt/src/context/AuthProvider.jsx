@@ -1,19 +1,15 @@
-import { createContext, useEffect, useState } from 'react'
-import { getLocalStorage, setLocalStorage } from '../utils/localstorage';
-
-export const AuthContext = createContext();
+import { useMemo } from "react";
+import { getLocalStorage, setLocalStorage } from "../utils/localstorage";
+import { AuthContext } from "./AuthContext.jsx";
 
 function AuthProvider(props) {
-  const [userData, setuserData] = useState(null);
-
-  useEffect(() => {
-    // Seed demo users only if they are not already present.
-    // This avoids wiping any existing localStorage data.
+  // Seed demo users only if they are not already present.
+  // This avoids wiping any existing localStorage data.
+  const userData = useMemo(() => {
     setLocalStorage();
-
     const { customer, staff } = getLocalStorage();
-    setuserData({ customer, staff });
-  }, [])
+    return { customer, staff };
+  }, []);
 
   return (
     <AuthContext.Provider value={userData}>

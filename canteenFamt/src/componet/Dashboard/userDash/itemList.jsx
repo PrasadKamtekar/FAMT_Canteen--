@@ -26,23 +26,23 @@ function ItemList({ item }) {
   };
 
   return (
-    <div className="w-full sm:w-[30vw] h-[20vh] bg-white rounded-[1vw] p-[2vh] flex">
-      <div className="w-8/20">
+    <div className="w-full bg-white rounded-xl p-3 sm:p-4 flex gap-3 shadow-sm border border-gray-100">
+      <div className="w-24 h-24 sm:w-28 sm:h-28 shrink-0">
         <img
           src="https://thumbs.dreamstime.com/b/misal-pav-buns-smeared-butter-served-spicy-sprouts-curry-trail-mixture-chopped-onions-chilli-lemons-bun-indian-starter-171494146.jpg?w=768"
-          className="h-[16vh] w-[9vw] rounded-[0.8vw]"
+          className="h-full w-full rounded-lg object-cover"
         />
       </div>
 
-      <div className=" w-12/20 pl-[2vh] flex flex-col justify-evenly">
-        <h1 className="font-semibold tracking-wider">
-          {item.name} <br />
-          <span>₹ {item.price}</span>
+      <div className="flex-1 flex flex-col justify-between">
+        <h1 className="font-semibold tracking-wide text-sm sm:text-base">
+          {item.name}
+          <span className="block text-[#0F6657] mt-1">₹ {item.price}</span>
         </h1>
 
         <button
           onClick={handleAddToCart}
-          className="bg-[#E6F7F3] w-full rounded-[0.5vw] text-[#00AD8F] p-[0.4vw] text-[0.9vw]"
+          className="bg-[#E6F7F3] w-full rounded-lg text-[#00AD8F] py-2 text-sm sm:text-base transition-transform duration-150 active:scale-95 active:bg-[#d9f2ec]"
         >
           Add to cart
         </button>

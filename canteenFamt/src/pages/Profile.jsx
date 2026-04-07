@@ -1,74 +1,123 @@
-import { ChevronLeft } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useMemo, useState } from "react";
+import SubPageHeader from "../componet/Dashboard/userDash/SubPageHeader.jsx";
+import { getCurrentUserProfile, saveCurrentUserProfile } from "../utils/localstorage.jsx";
 
 function Profile() {
-    const navigate = useNavigate();
+    const currentUser = JSON.parse(localStorage.getItem("currentUser")) || null;
+    const storedProfile = getCurrentUserProfile();
+    const [isEditing, setIsEditing] = useState(false);
+    const [profile, setProfile] = useState(() => ({
+        username: storedProfile?.username || currentUser?.username || "",
+        email: storedProfile?.email || "",
+        mobile: storedProfile?.mobile || "",
+        profileImage: storedProfile?.profileImage || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=300"
+    }));
 
-    // LOGOUT + LOCALSTORAGE:
-    // We simply remove the "currentUser" key and send the user back to login.
-    // ProtectedRoute will then block access to dashboard/cart/profile.
-    const handleLogout = () => {
-        localStorage.removeItem("currentUser");
-        navigate("/login");
+    const canSave = useMemo(() => profile.username.trim().length > 0, [profile.username]);
+
+    const handleImageUpload = (event) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+            setProfile((prev) => ({ ...prev, profileImage: reader.result }));
+        };
+        reader.readAsDataURL(file);
     };
 
-    const currentUser = JSON.parse(localStorage.getItem("currentUser")) || null;
+    const handleSave = () => {
+        if (!canSave) {
+            alert("Username is required.");
+            return;
+        }
+
+        saveCurrentUserProfile({
+            username: profile.username.trim(),
+            email: profile.email.trim(),
+            mobile: profile.mobile.trim(),
+            profileImage: profile.profileImage
+        });
+        setIsEditing(false);
+    };
 
     return (
         <>
-            {/** nav */}
-            <div className="bg-[#ffffff] flex items-center gap-4 pl-[4vw] h-[8dvh]  shadow-sm ">
-                <button onClick={() => {
-                    navigate(-1);
-                }}>
-                    <ChevronLeft />
-                </button>
-
-                <h1 className="font-semibold tracking-wider text-[1.3vw]">My <span className="text-[#FBA808]">Profile</span></h1>
-
-            </div>
+            <SubPageHeader page="profile" />
             {/** profile container */}
-            <div className="bg-[#eeeef1]">
-                <div className="w-full h-[80dvh]  pt-[7vh]   pb-[7vh] gap-10  flex justify-center " >
-                    <div className="bg-[#ffffff] w-[90vw] md:w-[25vw] flex flex-col items-center gap-3  rounded-[1vw] pt-[3vh] shadow-md">
-                        <div className="w-full flex justify-end px-[3vw]">
-                            <button className='text-[1vw] tracking-wider font-medium  text-gray-700'>Edit</button>
+            <div className="bg-[#eeeef1] min-h-[calc(100dvh-90px)] px-4 py-8">
+                <div className="w-full flex justify-center">
+                    <div className="bg-[#ffffff] w-full max-w-xl rounded-xl shadow-md p-5 sm:p-7">
+                        <div className="w-full flex justify-end">
+                            <button
+                                onClick={() => setIsEditing((prev) => !prev)}
+                                className='text-sm sm:text-base tracking-wider font-medium text-gray-700'
+                            >
+                                {isEditing ? "Cancel" : "Edit"}
+                            </button>
                         </div>
-                        <div className="w-[10vw] h-[20vh]   text-center">
-                            <img src="https://4kwallpapers.com/images/wallpapers/iron-man-marvel-superheroes-amoled-pitch-black-minimal-art-750x1334-6293.png" alt="" className=" w-[10vw] h-[20vh]  rounded-full text-center object-cover" />
+                        <div className="w-full flex flex-col items-center mt-2 mb-4">
+                            <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full overflow-hidden border-2 border-[#FBA808]">
+                                <img
+                                    src={profile.profileImage}
+                                    alt="Profile"
+                                    className="w-full h-full object-cover"
+                                />
+                            </div>
+                            {isEditing && (
+                                <label className="mt-3 text-sm text-[#0F6657] font-medium cursor-pointer">
+                                    Change Profile Photo
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={handleImageUpload}
+                                    />
+                                </label>
+                            )}
                         </div>
-                        <div className="flex flex-col justify-center items-center gap-2 w-full ">
-                            <div className='w-[80%]'>
-                                <h1 className="text-[1vw]  font-[400] text-gray-500">username</h1>
+                        <div className="flex flex-col justify-center items-center gap-3 w-full">
+                            <div className='w-full'>
+                                <h1 className="text-sm sm:text-base font-[400] text-gray-500 mb-1">Username</h1>
                                 <input
                                     type="text"
-                                    placeholder='username'
-                                    defaultValue={currentUser?.username}
-                                    className="bg-gray-200 w-[100%] p-[0.6vw] text-[0.8vw] rounded-lg outline-none" />
+                                    value={profile.username}
+                                    disabled={!isEditing}
+                                    onChange={(e) => setProfile((prev) => ({ ...prev, username: e.target.value }))}
+                                    className="bg-gray-200 w-full px-3 py-2 text-sm sm:text-base rounded-lg outline-none disabled:opacity-80"
+                                />
                             </div>
-                            <div className='w-[80%]'>
-                                <h1 className="text-[1vw]  font-[400] text-gray-500">Email</h1>
-                                <input type="text" placeholder='email'
-                                    className="bg-gray-200 w-[100%] p-[0.6vw] text-[0.8vw] rounded-lg outline-none" />
+                            <div className='w-full'>
+                                <h1 className="text-sm sm:text-base font-[400] text-gray-500 mb-1">Email</h1>
+                                <input
+                                    type="text"
+                                    value={profile.email}
+                                    disabled={!isEditing}
+                                    onChange={(e) => setProfile((prev) => ({ ...prev, email: e.target.value }))}
+                                    className="bg-gray-200 w-full px-3 py-2 text-sm sm:text-base rounded-lg outline-none disabled:opacity-80"
+                                />
                             </div>
-                            <div className='w-[80%]'>
-                                <h1 className="text-[1vw]  font-[400] text-gray-500">mobile</h1>
-                                <input type="text" placeholder='mobile'
-                                    className="bg-gray-200 w-[100%] p-[0.6vw] text-[0.8vw] rounded-lg outline-none" />
+                            <div className='w-full'>
+                                <h1 className="text-sm sm:text-base font-[400] text-gray-500 mb-1">Mobile</h1>
+                                <input
+                                    type="text"
+                                    value={profile.mobile}
+                                    disabled={!isEditing}
+                                    onChange={(e) => setProfile((prev) => ({ ...prev, mobile: e.target.value }))}
+                                    className="bg-gray-200 w-full px-3 py-2 text-sm sm:text-base rounded-lg outline-none disabled:opacity-80"
+                                />
                             </div>
 
                         </div>
-                        <div className="flex gap-4 pb-[2vh]">
-                            <button className="bg-[#FBA808] text-white tracking-wider font-medium text-[1vw] pl-[2vw] pr-[2vw] pt-[0.5vh] pb-[0.5vh] rounded-[0.5vw]">
-                                Save
-                            </button>
-                            <button
-                                onClick={handleLogout}
-                                className='border border-red-400 text-red-500 tracking-wider font-medium text-[1vw] pl-[2vw] pr-[2vw] pt-[0.5vh] pb-[0.5vh] rounded-[0.5vw]'
-                            >
-                                Logout
-                            </button>
-                        </div>
+                        {isEditing && (
+                            <div className="flex justify-center mt-5">
+                                <button
+                                    onClick={handleSave}
+                                    className="bg-[#FBA808] text-white tracking-wider font-medium text-sm sm:text-base px-6 py-2 rounded-lg"
+                                >
+                                    Save
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

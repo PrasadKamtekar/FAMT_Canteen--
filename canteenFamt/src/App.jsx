@@ -7,10 +7,11 @@ import ResetPass from "./pages/Auth/Resetpassword.jsx"
 import CustHome from "./componet/Dashboard/userDash/Home.jsx"
 import Cart from "./pages/cart.jsx"
 import Profile from "./pages/Profile.jsx"
+import MyOrders from "./pages/MyOrders.jsx";
 import CanteenHome from "./componet/Dashboard/canteenDash/CanteenHome.jsx"
 
 import { useNavigate, Route, Routes, Navigate } from "react-router-dom";
-import { AuthContext } from "./context/AuthProvider.jsx";
+import { AuthContext } from "./context/AuthContext.jsx";
 import { useContext } from "react";
 
 // Simple protected route wrapper.
@@ -28,6 +29,7 @@ function ProtectedRoute({ children, allowedRoles }) {
 
     return children;
 }
+
 export default function App() {
     const navigate = useNavigate();
     // useEffect(() => {
@@ -35,20 +37,20 @@ export default function App() {
     // })
 
     const authData = useContext(AuthContext);
-    const handleLogin = (username, password) => {
+    const handleLogin = (email, password) => {
         // AUTH + LOCALSTORAGE:
-        // We always fall back to empty arrays so .find never crashes.
-        const customers = authData?.customer || [];
+        // Customer login uses localStorage users (frontend-only auth).
+        const customers = JSON.parse(localStorage.getItem("users")) || [];
         const staffMembers = authData?.staff || [];
 
-        const foundCustomer = customers.find((e) => username == e.username && password == e.password);
-        const foundStaff = staffMembers.find((e) => username == e.username && password == e.password);
+        const foundCustomer = customers.find((e) => email == e.email && password == e.password);
+        const foundStaff = staffMembers.find((e) => email == e.username && password == e.password);
 
         if (foundCustomer) {
             // Save session in localStorage so we can protect pages and greet the user.
             localStorage.setItem(
                 "currentUser",
-                JSON.stringify({ username: foundCustomer.username, role: "customer" })
+                JSON.stringify({ username: foundCustomer.username, email: foundCustomer.email, role: "customer" })
             );
             navigate('/home');
         } else if (foundStaff) {
@@ -58,7 +60,7 @@ export default function App() {
             );
             navigate('/canteendashboard')
         } else {
-            alert("Invlid credential");
+            alert("Wrong login");
         }
     }
 
@@ -67,23 +69,14 @@ export default function App() {
 
         <Routes>
             <Route path="/" element={<Layout />}>
-
                 <Route index element={<Login handleLogin={handleLogin} />} />
                 <Route path="login" element={<Login handleLogin={handleLogin} />} />
                 <Route path="signup" element={<SignUp />} />
                 <Route path="forgotpassword" element={<Forgot />} />
                 <Route path="emailverify" element={<EmailVerify />} />
                 <Route path="resetpassword" element={<ResetPass />} />
-
             </Route>
-            <Route
-                path="canteendashboard"
-                element={
-                    <ProtectedRoute allowedRoles={["staff"]}>
-                        <CanteenHome />
-                    </ProtectedRoute>
-                }
-            />
+
             <Route
                 path="home"
                 element={
@@ -105,6 +98,22 @@ export default function App() {
                 element={
                     <ProtectedRoute>
                         <Profile />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="orders"
+                element={
+                    <ProtectedRoute allowedRoles={["customer"]}>
+                        <MyOrders />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="canteendashboard"
+                element={
+                    <ProtectedRoute allowedRoles={["staff"]}>
+                        <CanteenHome />
                     </ProtectedRoute>
                 }
             />

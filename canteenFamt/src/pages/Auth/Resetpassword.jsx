@@ -1,33 +1,74 @@
-import React from 'react'
-import { Link } from "react-router-dom"
+import { useState } from 'react'
+import { useNavigate } from "react-router-dom"
 function Resetpassword() {
+    const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+    const navigate = useNavigate();
+
+    const handleReset = () => {
+        const resetEmail = localStorage.getItem("resetEmail");
+        if (!resetEmail) {
+            alert("Reset session not found.");
+            navigate("/forgotpassword");
+            return;
+        }
+
+        if (!password || !confirmPassword) {
+            alert("Please fill both password fields");
+            return;
+        }
+
+        if (password !== confirmPassword) {
+            alert("Passwords do not match");
+            return;
+        }
+
+        const users = JSON.parse(localStorage.getItem("users")) || [];
+        const updatedUsers = users.map((u) =>
+            u.email === resetEmail ? { ...u, password } : u
+        );
+        localStorage.setItem("users", JSON.stringify(updatedUsers));
+        localStorage.removeItem("resetEmail");
+        alert("Password reset successful.");
+        navigate("/login");
+    };
+
     return (
-        <div className="bg-[#0F6657] w-[23vw] pt-[2vw] pb-[1vw] rounded-[0.6vw]">
-            <h1 className="text-[1.7vw] leading-[2.5vw] mb-[1.2vw] pl-[2.2vw] font-semibold text-[#F8FAFC]">
+        <div className="bg-[#0F6657] w-[90%] max-w-[400px] rounded-2xl shadow-sm p-5 sm:p-6">
+            <h1 className="text-xl sm:text-2xl leading-tight pb-3 font-semibold text-[#F8FAFC] text-left">
                 Reset Password
             </h1>
 
-            <div className="bg-[#F8FAFC] rounded-[0.4vw] flex flex-col gap-4 p-[1.5vw] m-[1.3vw] pt-[2vw]">
+            <div className="bg-[#F8FAFC] rounded-xl flex flex-col gap-4 p-4 sm:p-5 mt-1">
                 <div>
-                    <h2 className="text-[0.9vw] text-center mb-[0.6vw] font-[400] text-gray-500"><span className="text-[#FBA808] text-[1.5vw] font-700">Enter New Password</span><br /> Your new password must be different from previously used password</h2>
+                    <h2 className="text-sm sm:text-base text-center mb-2 font-[400] text-gray-500"><span className="text-[#FBA808] text-base sm:text-lg font-700">Enter New Password</span><br /> Your new password must be different from previously used password</h2>
                 </div>
                 <div>
-                    <h2 className="text-[1vw] mb-[0.6vw] font-[400] text-gray-500">Password</h2>
+                    <h2 className="text-sm sm:text-base mb-2 font-[400] text-gray-500">New Password</h2>
                     <input
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
                         type="password"
-                        className="bg-gray-200 w-[100%] p-[0.6vw] text-[0.8vw] rounded-lg outline-none"
+                        className="bg-gray-200 w-full px-3 py-2.5 text-sm sm:text-base rounded-lg outline-none"
                     />
                 </div>
                 <div>
-                    <h2 className="text-[1vw] mb-[0.6vw] font-[400] text-gray-500">Confirm Password</h2>
+                    <h2 className="text-sm sm:text-base mb-2 font-[400] text-gray-500">Confirm Password</h2>
                     <input
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
                         type="password"
-                        className="bg-gray-200 w-[100%] p-[0.6vw] text-[0.8vw] rounded-lg outline-none"
+                        className="bg-gray-200 w-full px-3 py-2.5 text-sm sm:text-base rounded-lg outline-none"
                     />
                 </div>
                 
 
-                <Link className="bg-[#FBA808] text-center p-[0.52vw] rounded-lg text-[1vw] text-[#F8FAFC]"> Continue </Link>
+                <button
+                    onClick={handleReset}
+                    className="bg-[#FBA808] text-center w-full py-2.5 rounded-lg text-base text-[#F8FAFC]"
+                >
+                    Update Password
+                </button>
 
 
 

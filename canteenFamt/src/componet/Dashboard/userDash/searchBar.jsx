@@ -1,9 +1,6 @@
-import { Search, ShoppingCart } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Search } from 'lucide-react';
 
 function SearchBar({ value, onChange }) {
-  const navigate = useNavigate();
-
   // SEARCH BAR:
   // Whenever the user types, we simply call onChange with the latest value.
   // The parent (Home) then filters items using Array.filter().
@@ -12,10 +9,10 @@ function SearchBar({ value, onChange }) {
   };
 
   return (
-    <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center mt-[3vh] px-[4vw] pb-[1vw] gap-3">
+    <div className="px-4 sm:px-6 pb-3">
 
       {/* SEARCH */}
-      <div className="flex flex-1 bg-[#FFFFFF33] text-white rounded-lg overflow-hidden">
+      <div className="flex w-full bg-[#FFFFFF33] text-white rounded-lg overflow-hidden">
 
         <input
           type="text"
@@ -30,17 +27,6 @@ function SearchBar({ value, onChange }) {
         </button>
 
       </div>
-
-      {/* CART */}
-      <div className="flex justify-end">
-        <button onClick={() => {
-          navigate('/cart');
-        }} className="bg-[#FBA808] p-[2.5vw] md:p-[0.5vw] rounded-full hover:bg-white">
-          <ShoppingCart size={24} strokeWidth={1} />
-        </button>
-
-      </div>
-
     </div>
   )
 }
