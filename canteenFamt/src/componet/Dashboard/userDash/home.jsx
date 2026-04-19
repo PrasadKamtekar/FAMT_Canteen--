@@ -1,15 +1,23 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import ItemList from "./itemList.jsx"
 import HomeNav from "./homeNav.jsx"
 import SearchBar from './searchBar.jsx';
-import { getMenuFromStorage, setLocalStorage } from "../../../utils/localstorage.jsx";
+import { getMenuItems, addMenuItem, subscribeToMenu } from "../../../utils/firebaseUtils.js";
+import toast from "react-hot-toast";
 
 function Home() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [menuItems] = useState(() => {
-    setLocalStorage();
-    return getMenuFromStorage();
-  });
+  const [menuItems, setMenuItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const unsubscribe = subscribeToMenu((items) => {
+      setMenuItems(items);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   // SEARCH LOGIC:
   // We use simple JavaScript filter() to match items by name.
@@ -17,7 +25,7 @@ function Home() {
     const term = searchTerm.trim().toLowerCase();
     if (!term) return menuItems;
     return menuItems.filter((item) =>
-      item.name.toLowerCase().startsWith(term)
+      item.name?.toLowerCase().startsWith(term)
     );
   }, [searchTerm, menuItems]);
 
@@ -34,11 +42,21 @@ function Home() {
 
       {/* ADD SPACE so content not hide */}
       <div className="mt-44 sm:mt-48 bg-[#EDEEEF] px-4 sm:px-6 py-5 min-h-[75vh]">
-        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-        {filteredItems.map((item) => (
-          <ItemList key={item.id} item={item} />
-        ))}
-        </div>
+        {loading ? (
+          <div className="flex justify-center items-center py-20">
+            <h1 className="text-[#0F6657] font-semibold text-lg">Loading Menu...</h1>
+          </div>
+        ) : filteredItems.length > 0 ? (
+          <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+          {filteredItems.map((item) => (
+            <ItemList key={item.id} item={item} />
+          ))}
+          </div>
+        ) : (
+          <div className="flex flex-col justify-center items-center py-20 gap-4">
+            <h1 className="text-gray-500 font-medium">No items found.</h1>
+          </div>
+        )}
       </div>
     </div >
   )

@@ -1,18 +1,19 @@
-import { useMemo } from "react";
+import { useEffect, useState } from "react";
 import SubPageHeader from "../componet/Dashboard/userDash/SubPageHeader.jsx";
-import { getOrdersFromStorage } from "../utils/localstorage.jsx";
+import { subscribeToUserOrders } from "../utils/firebaseUtils.js";
+import { useAuth } from "../context/AuthContext.jsx";
 
 function MyOrders() {
-  const currentUser = JSON.parse(localStorage.getItem("currentUser")) || null;
-  const orders = getOrdersFromStorage();
+  const { currentUser } = useAuth();
+  const [userOrders, setUserOrders] = useState([]);
 
-  const userOrders = useMemo(() => {
-    const username = currentUser?.username;
-    if (!username) return [];
-    return orders
-      .filter((order) => order.userName === username)
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-  }, [orders, currentUser?.username]);
+  useEffect(() => {
+    if (!currentUser) return;
+    const unsubscribe = subscribeToUserOrders(currentUser.uid, (orders) => {
+      setUserOrders(orders);
+    });
+    return () => unsubscribe();
+  }, [currentUser]);
 
   return (
     <div className="min-h-[100dvh] bg-[#eeeef1]">

@@ -1,19 +1,28 @@
 import { ClipboardList, Home, LogOut, ShoppingCart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { getCurrentUserProfile } from "../../../utils/localstorage.jsx";
 import { useAuth } from "../../../context/AuthContext.jsx";
+import { useEffect, useState } from "react";
+import { getUserProfile } from "../../../utils/firebaseUtils.js";
 
 function HomeNav({ activeTab = "home" }) {
     const navigate = useNavigate();
     const { currentUser, logout } = useAuth();
+    const [profile, setProfile] = useState(null);
+
+    useEffect(() => {
+        if (!currentUser) return;
+        const fetchProfile = async () => {
+            const data = await getUserProfile(currentUser.uid);
+            if (data) setProfile(data);
+        };
+        fetchProfile();
+    }, [currentUser]);
 
     // Determine display name
-    // For email signups, displayName might be null unless updated. We can fallback to email or 'User'.
-    const displayName = currentUser?.displayName || currentUser?.email?.split('@')[0] || "User";
-    const profile = getCurrentUserProfile(); // keeping this for now
+    // Prefer the username from the fetched profile, fallback to auth object or email.
+    const displayName = profile?.username || currentUser?.displayName || currentUser?.email?.split('@')[0] || "User";
 
     const tabs = [
-        { id: "home", path: "/home", icon: <Home size={16} /> },
         { id: "orders", path: "/orders", icon: <ClipboardList size={16} /> },
         { id: "cart", path: "/cart", icon: <ShoppingCart size={16} /> }
     ];

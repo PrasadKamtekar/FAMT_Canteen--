@@ -1,27 +1,22 @@
-import { getCartFromStorage, saveCartToStorage } from "../../../utils/localstorage";
+import { useAuth } from "../../../context/AuthContext.jsx";
+import { addToCart } from "../../../utils/firebaseUtils.js";
+import toast from "react-hot-toast";
 
 function ItemList({ item }) {
-  const handleAddToCart = () => {
-    // CART LOGIC (ADD ITEM):
-    // 1. Read current cart from localStorage (fallback to []).
-    // 2. If item exists, increase quantity; otherwise push new item with quantity 1.
-    // 3. Save the updated cart back to localStorage.
-    const cart = getCartFromStorage();
-    const existingIndex = cart.findIndex((c) => c.id === item.id);
+  const { currentUser } = useAuth();
 
-    if (existingIndex >= 0) {
-      const updated = [...cart];
-      updated[existingIndex] = {
-        ...updated[existingIndex],
-        quantity: updated[existingIndex].quantity + 1,
-      };
-      saveCartToStorage(updated);
-    } else {
-      const nextCart = [
-        ...cart,
-        { id: item.id, name: item.name, price: item.price, quantity: 1 },
-      ];
-      saveCartToStorage(nextCart);
+  const handleAddToCart = async () => {
+    if (!currentUser) {
+      toast.error("Please login to add to cart");
+      return;
+    }
+    
+    try {
+      toast.loading("Adding...", { id: "addCart" });
+      await addToCart(currentUser.uid, item);
+      toast.success(`${item.name} added to cart`, { id: "addCart" });
+    } catch (error) {
+      toast.error("Failed to add to cart", { id: "addCart" });
     }
   };
 
@@ -29,7 +24,7 @@ function ItemList({ item }) {
     <div className="w-full bg-white rounded-xl p-3 sm:p-4 flex gap-3 shadow-sm border border-gray-100">
       <div className="w-24 h-24 sm:w-28 sm:h-28 shrink-0">
         <img
-          src="https://thumbs.dreamstime.com/b/misal-pav-buns-smeared-butter-served-spicy-sprouts-curry-trail-mixture-chopped-onions-chilli-lemons-bun-indian-starter-171494146.jpg?w=768"
+          src={item.image || "https://thumbs.dreamstime.com/b/misal-pav-buns-smeared-butter-served-spicy-sprouts-curry-trail-mixture-chopped-onions-chilli-lemons-bun-indian-starter-171494146.jpg?w=768"}
           className="h-full w-full rounded-lg object-cover"
         />
       </div>

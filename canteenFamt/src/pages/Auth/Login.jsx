@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom"
 import { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
+import toast from "react-hot-toast";
 
 function Login() {
     const [email, setEmail] = useState('');
@@ -16,10 +17,39 @@ function Login() {
         try {
             setError('');
             setLoading(true);
-            await login(email, password);
-            navigate('/home');
+            const trimmedEmail = email.trim();
+            const userCredential = await login(trimmedEmail, password);
+            toast.success("Successfully logged in!");
+            
+            // Check if admin
+            if (userCredential.user.email === 'famt@gmail.com') {
+                navigate('/canteendashboard');
+            } else {
+                navigate('/home');
+            }
         } catch (err) {
-            setError('Failed to log in: ' + err.message);
+            let friendlyMessage = 'An unexpected error occurred.';
+            switch (err.code) {
+                case 'auth/invalid-credential':
+                    friendlyMessage = 'Invalid email or password.';
+                    break;
+                case 'auth/user-not-found':
+                    friendlyMessage = 'No account found with this email.';
+                    break;
+                case 'auth/wrong-password':
+                    friendlyMessage = 'Incorrect password.';
+                    break;
+                case 'auth/too-many-requests':
+                    friendlyMessage = 'Too many failed login attempts. Please try again later.';
+                    break;
+                case 'auth/network-request-failed':
+                    friendlyMessage = 'Network error. Please check your connection.';
+                    break;
+                default:
+                    friendlyMessage = err.message || 'Failed to log in.';
+            }
+            setError(friendlyMessage);
+            toast.error(friendlyMessage);
         }
         setLoading(false);
     }
@@ -29,10 +59,31 @@ function Login() {
         try {
             setError('');
             setLoading(true);
-            await loginWithGoogle();
-            navigate('/home');
+            const userCredential = await loginWithGoogle();
+            toast.success("Successfully logged in with Google!");
+            
+            if (userCredential.user.email === 'famt@gmail.com') {
+                navigate('/canteendashboard');
+            } else {
+                navigate('/home');
+            }
         } catch (err) {
-            setError('Failed to log in with Google: ' + err.message);
+            let friendlyMessage = 'An unexpected error occurred during Google Sign-In.';
+            switch (err.code) {
+                case 'auth/popup-closed-by-user':
+                    friendlyMessage = 'Sign-in popup was closed before completion.';
+                    break;
+                case 'auth/cancelled-popup-request':
+                    friendlyMessage = 'Multiple sign-in requests were made.';
+                    break;
+                case 'auth/network-request-failed':
+                    friendlyMessage = 'Network error. Please check your connection.';
+                    break;
+                default:
+                    friendlyMessage = err.message || 'Failed to log in with Google.';
+            }
+            setError(friendlyMessage);
+            toast.error(friendlyMessage);
         }
         setLoading(false);
     }

@@ -1,53 +1,68 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  getMenuFromStorage,
-  getOrdersFromStorage,
-  saveMenuToStorage,
-  saveOrdersToStorage,
-  setLocalStorage
-} from "../../../utils/localstorage.jsx";
+  subscribeToMenu,
+  subscribeToAllOrders,
+  addMenuItem,
+  updateMenuItem,
+  deleteMenuItem,
+  updateOrderStatus
+} from "../../../utils/firebaseUtils.js";
 import AdminTopBar from "./components/AdminTopBar.jsx";
 import MenuEditor from "./components/MenuEditor.jsx";
 import OrdersPanel from "./components/OrdersPanel.jsx";
 import EarningsPanel from "./components/EarningsPanel.jsx";
+import { useAuth } from "../../../context/AuthContext.jsx";
+import toast from "react-hot-toast";
 
 function CanteenHome() {
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const [activeTab, setActiveTab] = useState("menu");
-  const [menuItems, setMenuItems] = useState(() => {
-    setLocalStorage();
-    return getMenuFromStorage();
-  });
-  const [orders, setOrders] = useState(() => getOrdersFromStorage());
+  const [menuItems, setMenuItems] = useState([]);
+  const [orders, setOrders] = useState([]);
   const [editingItem, setEditingItem] = useState(null);
 
-  const handleAddItem = (item) => {
-    const nextItems = [...menuItems, { id: Date.now(), ...item }];
-    setMenuItems(nextItems);
-    saveMenuToStorage(nextItems);
+  useEffect(() => {
+    const unsubscribeMenu = subscribeToMenu((items) => {
+      setMenuItems(items);
+    });
+    
+    const unsubscribeOrders = subscribeToAllOrders((items) => {
+      setOrders(items);
+    });
+
+    return () => {
+      unsubscribeMenu();
+      unsubscribeOrders();
+    };
+  }, []);
+
+  const handleAddItem = async (item, imageFile = null) => {
+    await addMenuItem(item, imageFile);
   };
 
-  const handleUpdateItem = (updatedItem) => {
-    const nextItems = menuItems.map((item) =>
-      item.id === updatedItem.id ? updatedItem : item
-    );
-    setMenuItems(nextItems);
-    saveMenuToStorage(nextItems);
+  const handleUpdateItem = async (updatedItem, imageFile = null) => {
+    const { id, ...data } = updatedItem;
+    await updateMenuItem(id, data, imageFile);
   };
 
-  const handleDeleteItem = (id) => {
-    const nextItems = menuItems.filter((item) => item.id !== id);
-    setMenuItems(nextItems);
-    saveMenuToStorage(nextItems);
+  const handleDeleteItem = async (id) => {
+    try {
+      await deleteMenuItem(id);
+      toast.success("Item deleted successfully");
+    } catch (error) {
+      toast.error("Failed to delete item");
+    }
   };
 
-  const handleStatusChange = (orderId, status) => {
-    const nextOrders = orders.map((order) =>
-      order.id === orderId ? { ...order, status } : order
-    );
-    setOrders(nextOrders);
-    saveOrdersToStorage(nextOrders);
+  const handleStatusChange = async (orderId, status) => {
+    try {
+      await updateOrderStatus(orderId, status);
+      toast.success("Order status updated");
+    } catch (error) {
+      toast.error("Failed to update order status");
+    }
   };
 
   const earnings = useMemo(() => {
@@ -78,9 +93,14 @@ function CanteenHome() {
     return { totalEarnings, dailyEarnings, completedCount, pendingCount };
   }, [orders]);
 
-  const handleLogout = () => {
-    localStorage.removeItem("currentUser");
-    navigate("/login");
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast.success("Logged out successfully");
+      navigate("/login");
+    } catch (error) {
+      toast.error("Failed to log out");
+    }
   };
 
   return (

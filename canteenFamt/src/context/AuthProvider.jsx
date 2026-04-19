@@ -4,7 +4,8 @@ import {
   signInWithEmailAndPassword, 
   signOut, 
   onAuthStateChanged,
-  signInWithPopup
+  signInWithPopup,
+  sendPasswordResetEmail
 } from 'firebase/auth';
 import { auth, googleProvider } from '../firebase';
 import { AuthContext } from './AuthContext';
@@ -38,12 +39,17 @@ export default function AuthProvider({ children }) {
     return unsubscribe;
   }, []);
 
+  function resetPassword(email) {
+    return sendPasswordResetEmail(auth, email);
+  }
+
   const value = {
     currentUser,
     login,
     signup,
     loginWithGoogle,
-    logout
+    logout,
+    resetPassword
   };
 
   return (

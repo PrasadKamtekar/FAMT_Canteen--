@@ -1,29 +1,29 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { useAuth } from "../../context/AuthContext";
+import toast from "react-hot-toast";
 
 function Forgotpassword() {
     const [email, setEmail] = useState("");
+    const [loading, setLoading] = useState(false);
+    const { resetPassword } = useAuth();
     const navigate = useNavigate();
 
-    const generateOtp = () => Math.floor(1000 + Math.random() * 9000).toString();
-
-    const handleForgot = () => {
+    const handleForgot = async () => {
         if (!email) {
-            alert("Please enter email");
+            toast.error("Please enter your email address");
             return;
         }
 
-        const users = JSON.parse(localStorage.getItem("users")) || [];
-        const found = users.find((u) => u.email === email);
-        if (!found) {
-            alert("Email not found");
-            return;
+        try {
+            setLoading(true);
+            await resetPassword(email);
+            toast.success("Password reset email sent! Check your inbox.");
+            navigate("/login");
+        } catch (error) {
+            toast.error("Failed to reset password: " + error.message);
         }
-
-        const code = generateOtp();
-        localStorage.setItem("otp", JSON.stringify({ email, code, purpose: "reset" }));
-        alert(`Your OTP is ${code}`);
-        navigate("/emailverify");
+        setLoading(false);
     };
 
     return (
@@ -46,9 +46,10 @@ function Forgotpassword() {
                    
                         <button
                             onClick={handleForgot}
-                            className="bg-[#FBA808] text-center w-full py-2.5 rounded-lg text-base text-[#F8FAFC]"
+                            disabled={loading}
+                            className="bg-[#FBA808] text-center w-full py-2.5 rounded-lg text-base text-[#F8FAFC] disabled:opacity-50"
                         >
-                            Send OTP
+                            {loading ? "Sending..." : "Send Reset Link"}
                         </button>
                    
                   

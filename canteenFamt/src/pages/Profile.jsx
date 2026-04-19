@@ -1,48 +1,79 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import SubPageHeader from "../componet/Dashboard/userDash/SubPageHeader.jsx";
-import { getCurrentUserProfile, saveCurrentUserProfile } from "../utils/localstorage.jsx";
+import { getUserProfile, updateUserProfile } from "../utils/firebaseUtils.js";
 import { useAuth } from "../context/AuthContext.jsx";
+import toast from "react-hot-toast";
 
 function Profile() {
     const { currentUser } = useAuth();
-    const storedProfile = getCurrentUserProfile();
     const [isEditing, setIsEditing] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [imageFile, setImageFile] = useState(null);
     
     // Determine display name fallback
     const displayName = currentUser?.displayName || currentUser?.email?.split('@')[0] || "";
 
-    const [profile, setProfile] = useState(() => ({
-        username: storedProfile?.username || displayName || "",
-        email: storedProfile?.email || currentUser?.email || "",
-        mobile: storedProfile?.mobile || "",
-        profileImage: storedProfile?.profileImage || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=300"
-    }));
+    const [profile, setProfile] = useState({
+        username: displayName,
+        email: currentUser?.email || "",
+        profileImage: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=300"
+    });
+
+    useEffect(() => {
+        async function fetchProfile() {
+            if (currentUser?.uid) {
+                try {
+                    const data = await getUserProfile(currentUser.uid);
+                    if (data) {
+                        setProfile(prev => ({
+                            ...prev,
+                            username: data.username || prev.username,
+                            profileImage: data.profileImage || prev.profileImage
+                        }));
+                    }
+                } catch (error) {
+                    console.error("Error fetching profile", error);
+                }
+            }
+            setLoading(false);
+        }
+        fetchProfile();
+    }, [currentUser]);
 
     const canSave = useMemo(() => profile.username.trim().length > 0, [profile.username]);
 
     const handleImageUpload = (event) => {
         const file = event.target.files?.[0];
         if (!file) return;
+        setImageFile(file); // save file to pass to firebase
         const reader = new FileReader();
         reader.onload = () => {
+            // update local preview immediately
             setProfile((prev) => ({ ...prev, profileImage: reader.result }));
         };
         reader.readAsDataURL(file);
     };
 
-    const handleSave = () => {
+    const handleSave = async () => {
         if (!canSave) {
-            alert("Username is required.");
+            toast.error("Username is required.");
             return;
         }
 
-        saveCurrentUserProfile({
-            username: profile.username.trim(),
-            email: profile.email.trim(),
-            mobile: profile.mobile.trim(),
-            profileImage: profile.profileImage
-        });
-        setIsEditing(false);
+        try {
+            toast.loading("Saving profile...", { id: "profile" });
+            await updateUserProfile(currentUser.uid, {
+                username: profile.username.trim(),
+                email: profile.email.trim(),
+                profileImage: profile.profileImage // Will be replaced if imageFile exists
+            }, imageFile);
+            
+            toast.success("Profile updated successfully", { id: "profile" });
+            setIsEditing(false);
+            setImageFile(null);
+        } catch (error) {
+            toast.error("Failed to save profile.", { id: "profile" });
+        }
     };
 
     return (
@@ -96,19 +127,8 @@ function Profile() {
                                 <input
                                     type="text"
                                     value={profile.email}
-                                    disabled={!isEditing}
-                                    onChange={(e) => setProfile((prev) => ({ ...prev, email: e.target.value }))}
-                                    className="bg-gray-200 w-full px-3 py-2 text-sm sm:text-base rounded-lg outline-none disabled:opacity-80"
-                                />
-                            </div>
-                            <div className='w-full'>
-                                <h1 className="text-sm sm:text-base font-[400] text-gray-500 mb-1">Mobile</h1>
-                                <input
-                                    type="text"
-                                    value={profile.mobile}
-                                    disabled={!isEditing}
-                                    onChange={(e) => setProfile((prev) => ({ ...prev, mobile: e.target.value }))}
-                                    className="bg-gray-200 w-full px-3 py-2 text-sm sm:text-base rounded-lg outline-none disabled:opacity-80"
+                                    disabled
+                                    className="bg-gray-200 w-full px-3 py-2 text-sm sm:text-base rounded-lg outline-none disabled:opacity-80 cursor-not-allowed"
                                 />
                             </div>
 

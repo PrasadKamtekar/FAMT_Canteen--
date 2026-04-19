@@ -1,167 +1,206 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import toast from "react-hot-toast";
 
 function MenuEditor({ items, onAdd, onUpdate, onDelete, editingItem, setEditingItem }) {
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [imagePreview, setImagePreview] = useState("");
+  const [imageFile, setImageFile] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
 
-  const handleSubmit = () => {
-    const activeName = editingItem ? editingItem.name : name;
-    const activePriceRaw = editingItem ? editingItem.price : price;
-    const parsedPrice = Number(activePriceRaw);
-
-    if (!activeName.trim() || Number.isNaN(parsedPrice) || parsedPrice <= 0) {
-      alert("Please enter valid food name and price.");
-      return;
-    }
-
-    const normalizedName = activeName.trim().toLowerCase();
-    const isDuplicateName = items.some((i) => i.name?.trim().toLowerCase() === normalizedName && i.id !== editingItem?.id);
-    if (isDuplicateName) {
-      alert("Item name already exists.");
-      return;
-    }
-
-    const imageToSave = imagePreview || editingItem?.image || "";
-
+  // Load item data when editingItem changes
+  useEffect(() => {
     if (editingItem) {
-      onUpdate({ ...editingItem, name: activeName.trim(), price: parsedPrice, image: imageToSave });
-      setEditingItem(null);
+      setName(editingItem.name || "");
+      setPrice(editingItem.price || "");
+      setImagePreview(editingItem.image || "");
+      setImageFile(null); // Reset file input when editing a new item
+    } else {
+      setName("");
+      setPrice("");
       setImagePreview("");
+      setImageFile(null);
+    }
+  }, [editingItem]);
+
+  const handleSubmit = async () => {
+    const parsedPrice = Number(price);
+
+    if (!name.trim() || Number.isNaN(parsedPrice) || parsedPrice <= 0) {
+      toast.error("Please enter a valid food name and price.");
       return;
     }
 
-    onAdd({ name: activeName.trim(), price: parsedPrice, image: imageToSave });
-    setName("");
-    setPrice("");
-    setImagePreview("");
+    const normalizedName = name.trim().toLowerCase();
+    const isDuplicateName = items.some(
+      (i) => i.name?.trim().toLowerCase() === normalizedName && i.id !== editingItem?.id
+    );
+
+    if (isDuplicateName) {
+      toast.error("Item name already exists.");
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const imageToSave = imagePreview || "";
+
+      if (editingItem) {
+        await onUpdate(
+          { ...editingItem, name: name.trim(), price: parsedPrice, image: imageToSave },
+          imageFile
+        );
+      } else {
+        await onAdd(
+          { name: name.trim(), price: parsedPrice, image: imageToSave },
+          imageFile
+        );
+      }
+      
+      // Clear form and show success
+      setEditingItem(null);
+      setName("");
+      setPrice("");
+      setImagePreview("");
+      setImageFile(null);
+      
+      // Reset file input element if possible by selecting it
+      const fileInput = document.getElementById("food-image-upload");
+      if (fileInput) fileInput.value = "";
+      
+      toast.success("Item saved successfully");
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to save item.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleImageUpload = (event) => {
     const file = event.target.files?.[0];
     if (!file) {
-      setImagePreview("");
+      if (!editingItem) setImagePreview("");
+      setImageFile(null);
       return;
     }
 
+    setImageFile(file);
     const reader = new FileReader();
     reader.onload = () => setImagePreview(String(reader.result));
     reader.readAsDataURL(file);
   };
 
   return (
-    <div className="bg-white rounded-[0.8vw] shadow-sm p-[1.3vw]">
-      <h2 className="text-[1.1vw] font-semibold text-[#0F6657] mb-[1.2vh]">Food Items</h2>
-      <div className="bg-[#F8FAFC] border border-gray-200 rounded-[0.8vw] p-5 sm:p-6 mb-[1.4vh] max-w-[680px] mx-auto shadow-sm">
+    <div className="bg-white border border-gray-200 rounded-lg p-6">
+      <div className="mb-6">
+        <h2 className="text-xl font-medium text-gray-800">Food Items</h2>
+      </div>
+
+      <div className="bg-white border border-gray-200 rounded-lg p-5 mb-6">
         <div className="flex flex-col gap-4">
-        <div className="flex flex-col sm:flex-row gap-4">
-        <input
-          className="bg-gray-100 rounded-[0.5vw] p-[0.6vw] outline-none w-full"
-          placeholder="Food name"
-          value={editingItem ? editingItem.name : name}
-          onChange={(e) => {
-            if (editingItem) {
-              setEditingItem({ ...editingItem, name: e.target.value });
-              return;
-            }
-            setName(e.target.value);
-          }}
-        />
-        <input
-          className="bg-gray-100 rounded-[0.5vw] p-[0.6vw] outline-none w-full sm:max-w-[180px]"
-          placeholder="Price"
-          value={editingItem ? editingItem.price : price}
-          type="number"
-          onChange={(e) => {
-            if (editingItem) {
-              setEditingItem({ ...editingItem, price: e.target.value });
-              return;
-            }
-            setPrice(e.target.value);
-          }}
-        />
+          <div className="flex flex-col sm:flex-row gap-4">
+            <input
+              className="border border-gray-300 rounded px-3 py-2 outline-none w-full text-sm"
+              placeholder="Food name"
+              value={name}
+              disabled={isSaving}
+              onChange={(e) => setName(e.target.value)}
+            />
+            <input
+              className="border border-gray-300 rounded px-3 py-2 outline-none w-full sm:max-w-[180px] text-sm"
+              placeholder="Price"
+              value={price}
+              type="number"
+              disabled={isSaving}
+              onChange={(e) => setPrice(e.target.value)}
+            />
+          </div>
 
-        </div>
+          <div className="w-full">
+            <label className="block text-sm text-gray-600 mb-1">
+              Upload Item Image
+            </label>
+            <input
+              id="food-image-upload"
+              type="file"
+              accept="image/*"
+              disabled={isSaving}
+              className="border border-gray-300 rounded px-3 py-1.5 w-full text-sm text-gray-600"
+              onChange={handleImageUpload}
+            />
+            <div className="mt-2">
+              {imagePreview ? (
+                <img
+                  src={imagePreview}
+                  alt="Preview"
+                  className="h-16 w-16 rounded object-cover border border-gray-200"
+                />
+              ) : null}
+            </div>
+          </div>
 
-        <div className="w-full">
-          <label className="block text-[0.9vw] font-medium text-gray-600 mb-[0.5vh]">
-            Upload Item Image
-          </label>
-          <input
-            type="file"
-            accept="image/*"
-            className="bg-gray-100 rounded-[0.5vw] p-[0.4vw] w-full"
-            onChange={handleImageUpload}
-          />
-          <div className="mt-[0.8vh]">
-            {(imagePreview || editingItem?.image) ? (
-              <img
-                src={imagePreview || editingItem?.image}
-                alt="Preview"
-                className="h-[6vh] w-[6vh] rounded-[0.6vw] object-cover border border-gray-200"
-              />
-            ) : (
-              <div className="text-gray-400 text-[0.85vw]">No preview</div>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleSubmit}
+              disabled={isSaving}
+              className="bg-gray-800 hover:bg-gray-700 text-white rounded px-4 py-2 text-sm font-medium transition-colors disabled:opacity-50"
+            >
+              {isSaving ? "Saving..." : "Save Changes"}
+            </button>
+            {editingItem && !isSaving && (
+              <button
+                onClick={() => {
+                  setEditingItem(null);
+                  setName("");
+                  setPrice("");
+                  setImagePreview("");
+                  setImageFile(null);
+                  
+                  const fileInput = document.getElementById("food-image-upload");
+                  if (fileInput) fileInput.value = "";
+                }}
+                className="border border-gray-300 hover:bg-gray-50 text-gray-700 rounded px-4 py-2 text-sm font-medium transition-colors"
+              >
+                Cancel
+              </button>
             )}
           </div>
         </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleSubmit}
-            className="bg-[#e31837] hover:bg-[#c81430] text-[#F8FAFC] rounded-[0.5vw] px-3 py-1 text-[0.85vw] font-semibold shadow-none"
-          >
-            {editingItem ? "Update Item" : "Add Item"}
-          </button>
-          {editingItem && (
-            <button
-              onClick={() => {
-                setEditingItem(null);
-                setImagePreview("");
-                setName("");
-                setPrice("");
-              }}
-              className="border border-gray-400 text-gray-700 rounded-[0.5vw] px-3 py-1 text-[0.85vw]"
-            >
-              Cancel
-            </button>
-          )}
-        </div>
-      </div>
       </div>
 
-      <div className="flex flex-col gap-[0.8vh]">
+      <div className="flex flex-col gap-3">
         {items.map((item) => (
           <div
             key={item.id}
-            className="bg-white border border-gray-200 rounded-[0.7vw] px-4 py-3 flex items-center justify-between gap-3 shadow-sm"
+            className="bg-white border border-gray-200 rounded-lg px-4 py-3 flex items-center justify-between gap-3"
           >
             <div className="flex items-center gap-3">
               {item.image ? (
                 <img
                   src={item.image}
                   alt={item.name}
-                  className="w-[4.5vh] h-[4.5vh] rounded-[0.5vw] object-cover border border-gray-200"
+                  className="w-12 h-12 rounded object-cover border border-gray-200"
                 />
               ) : (
-                <div className="w-[4.5vh] h-[4.5vh] rounded-[0.5vw] bg-gray-100 border border-gray-200" />
+                <div className="w-12 h-12 rounded bg-gray-50 border border-gray-200" />
               )}
               <div>
-                <div className="text-[0.98vw] font-semibold text-[#0F6657]">{item.name}</div>
-                <div className="text-[0.9vw] text-gray-600">Rs {item.price}</div>
+                <div className="text-sm font-medium text-gray-800">{item.name}</div>
+                <div className="text-sm text-gray-500">Rs {item.price}</div>
               </div>
             </div>
 
             <div className="flex gap-2">
               <button
                 onClick={() => setEditingItem(item)}
-                className="bg-[#E6F7F3] text-[#00AD8F] border border-[#E6F7F3] rounded-[0.4vw] px-[0.8vw] py-[0.2vh] font-semibold text-[0.9vw]"
+                className="border border-gray-300 hover:bg-gray-50 text-gray-700 rounded px-3 py-1 text-sm font-medium transition-colors"
               >
                 Edit
               </button>
               <button
                 onClick={() => onDelete(item.id)}
-                className="text-[#e31837] bg-white border border-[#e31837] rounded-[0.4vw] px-[0.8vw] py-[0.2vh] font-semibold text-[0.9vw]"
+                className="border border-red-200 hover:bg-red-50 text-red-600 rounded px-3 py-1 text-sm font-medium transition-colors"
               >
                 Delete
               </button>
@@ -170,7 +209,7 @@ function MenuEditor({ items, onAdd, onUpdate, onDelete, editingItem, setEditingI
         ))}
 
         {!items.length && (
-          <div className="text-gray-500 text-[0.95vw] py-[1.2vw]">
+          <div className="text-gray-500 text-sm py-4 text-center border border-dashed border-gray-200 rounded-lg">
             No menu items available.
           </div>
         )}

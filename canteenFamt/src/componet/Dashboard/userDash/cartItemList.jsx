@@ -4,10 +4,17 @@ function CartItemList({ item, onIncrease, onDecrease, onRemove }) {
   return (
     <div className="w-full bg-white rounded-xl p-3 sm:p-4 flex gap-3 shadow-sm border border-gray-100">
       <div className="w-24 h-24 sm:w-28 sm:h-28 shrink-0">
-        <img
-          src="https://thumbs.dreamstime.com/b/misal-pav-buns-smeared-butter-served-spicy-sprouts-curry-trail-mixture-chopped-onions-chilli-lemons-bun-indian-starter-171494146.jpg?w=768"
-          className="h-full w-full rounded-lg object-cover"
-        />
+        {item.image ? (
+          <img
+            src={item.image}
+            alt={item.name}
+            className="h-full w-full rounded-lg object-cover border border-gray-100"
+          />
+        ) : (
+          <div className="h-full w-full rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-400 text-xs">
+            No image
+          </div>
+        )}
       </div>
 
       <div className="flex-1 flex flex-col justify-between">

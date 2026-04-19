@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom"
 import { useAuth } from "../../context/AuthContext";
 import { doc, setDoc } from "firebase/firestore";
 import { db } from "../../firebase";
+import toast from "react-hot-toast";
 
 function Signup() {
   const [username, setUsername] = useState("");
@@ -34,16 +35,38 @@ function Signup() {
         uid: user.uid,
         username: username,
         email: email,
-        role: "customer", // default role
+        role: email === "famt@gmail.com" ? "admin" : "customer",
         createdAt: new Date()
       });
 
-      // No need for OTP anymore, just go to home or login
-      alert("Signup successful!");
-      navigate("/home");
+      toast.success("Signup successful! Welcome to FAMTCANTEEN.");
+      
+      if (email === "famt@gmail.com") {
+        navigate("/canteendashboard");
+      } else {
+        navigate("/home");
+      }
       
     } catch (err) {
-      setError("Failed to create an account: " + err.message);
+      let friendlyMessage = 'An unexpected error occurred.';
+      switch (err.code) {
+        case 'auth/email-already-in-use':
+          friendlyMessage = 'An account already exists with this email.';
+          break;
+        case 'auth/invalid-email':
+          friendlyMessage = 'The email address is not valid.';
+          break;
+        case 'auth/weak-password':
+          friendlyMessage = 'Password should be at least 6 characters.';
+          break;
+        case 'auth/network-request-failed':
+          friendlyMessage = 'Network error. Please check your connection.';
+          break;
+        default:
+          friendlyMessage = err.message || 'Failed to create an account.';
+      }
+      setError(friendlyMessage);
+      toast.error(friendlyMessage);
     }
     
     setLoading(false);

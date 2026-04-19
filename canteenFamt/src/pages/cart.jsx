@@ -3,48 +3,52 @@ import { CircleCheckBig } from 'lucide-react';
 import CartItemList from "../componet/Dashboard/userDash/cartItemList.jsx"
 import { useNavigate } from 'react-router-dom';
 import SubPageHeader from "../componet/Dashboard/userDash/SubPageHeader.jsx";
+import { useAuth } from "../context/AuthContext.jsx";
 import {
-  getCartFromStorage,
-  saveCartToStorage,
-  getOrdersFromStorage,
-  saveOrdersToStorage
-} from "../utils/localstorage.jsx";
+  subscribeToCart,
+  updateCartItemQuantity,
+  removeFromCart,
+  placeOrder
+} from "../utils/firebaseUtils.js";
+import toast from "react-hot-toast";
 
 function Cart() {
   const navigate = useNavigate();
-  const [cartItems, setCartItems] = useState(() => getCartFromStorage());
+  const { currentUser } = useAuth();
+  const [cartItems, setCartItems] = useState([]);
   const [orderSuccess, setOrderSuccess] = useState(null);
 
-  // Whenever cartItems change we keep localStorage in sync.
   useEffect(() => {
-    // LOCALSTORAGE + CART:
-    // We always store the latest cart as JSON so that
-    // refreshing the page or reopening the app restores the cart.
-    saveCartToStorage(cartItems);
-  }, [cartItems]);
+    if (!currentUser) return;
+    const unsubscribe = subscribeToCart(currentUser.uid, (items) => {
+      setCartItems(items);
+    });
+    return () => unsubscribe();
+  }, [currentUser]);
 
-  const handleIncrease = (id) => {
-    setCartItems((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, quantity: item.quantity + 1 } : item
-      )
-    );
+  const handleIncrease = async (id, cartDocId, currentQuantity) => {
+    try {
+      await updateCartItemQuantity(cartDocId, currentQuantity + 1);
+    } catch (error) {
+      toast.error("Failed to update quantity");
+    }
   };
 
-  const handleDecrease = (id) => {
-    setCartItems((prev) =>
-      prev
-        .map((item) =>
-          item.id === id
-            ? { ...item, quantity: Math.max(1, item.quantity - 1) }
-            : item
-        )
-        .filter((item) => item.quantity > 0)
-    );
+  const handleDecrease = async (id, cartDocId, currentQuantity) => {
+    try {
+      await updateCartItemQuantity(cartDocId, currentQuantity - 1);
+    } catch (error) {
+      toast.error("Failed to update quantity");
+    }
   };
 
-  const handleRemove = (id) => {
-    setCartItems((prev) => prev.filter((item) => item.id !== id));
+  const handleRemove = async (id, cartDocId) => {
+    try {
+      await removeFromCart(cartDocId);
+      toast.success("Item removed");
+    } catch (error) {
+      toast.error("Failed to remove item");
+    }
   };
 
   // TOTAL PRICE:
@@ -56,39 +60,25 @@ function Cart() {
     );
   }, [cartItems]);
 
-  const handleConfirmOrder = () => {
-    if (!cartItems.length) {
+  const handleConfirmOrder = async () => {
+    if (!cartItems.length || !currentUser) {
       return;
     }
 
-    // ORDERS:
-    // 1. Read existing orders from localStorage (fallback []).
-    // 2. Append a new order with items, total and timestamp.
-    // 3. Save back to localStorage and clear cart.
-    const currentUser = JSON.parse(localStorage.getItem("currentUser")) || null;
-    const counter = Number(localStorage.getItem("orderTokenCounter") || "100");
-    const nextCounter = counter + 1;
-    localStorage.setItem("orderTokenCounter", String(nextCounter));
-    const token = `TKN-${nextCounter}`;
-
-    const existingOrders = getOrdersFromStorage();
-    const newOrder = {
-      id: Date.now(),
-      token,
-      userName: currentUser?.username || "User",
-      items: cartItems,
-      total,
-      createdAt: new Date().toISOString(),
-      status: "pending"
-    };
-
-    saveOrdersToStorage([...existingOrders, newOrder]);
-    setCartItems([]);
-    setOrderSuccess({
-      token: newOrder.token,
-      userName: newOrder.userName,
-      total: newOrder.total
-    });
+    try {
+      toast.loading("Placing order...", { id: "order" });
+      const userName = currentUser.displayName || currentUser.email.split('@')[0];
+      const { token } = await placeOrder(currentUser.uid, userName, cartItems, total);
+      
+      toast.success("Order placed successfully!", { id: "order" });
+      setOrderSuccess({
+        token,
+        userName,
+        total
+      });
+    } catch (error) {
+      toast.error("Failed to place order", { id: "order" });
+    }
   };
 
   if (orderSuccess) {
@@ -149,9 +139,9 @@ function Cart() {
               <CartItemList
                 key={item.id}
                 item={item}
-                onIncrease={handleIncrease}
-                onDecrease={handleDecrease}
-                onRemove={handleRemove}
+                onIncrease={() => handleIncrease(item.id, item.cartDocId, item.quantity)}
+                onDecrease={() => handleDecrease(item.id, item.cartDocId, item.quantity)}
+                onRemove={() => handleRemove(item.id, item.cartDocId)}
               />
             ))}
             {!cartItems.length && (
