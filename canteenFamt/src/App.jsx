@@ -2,8 +2,6 @@ import Layout from "./componet/authenticaton/Layout.jsx";
 import Login from "./pages/Auth/Login.jsx";
 import SignUp from "./pages/Auth/Signup.jsx";
 import Forgot from "./pages/Auth/Forgotpassword.jsx";
-import EmailVerify from "./pages/Auth/Emailverification.jsx"
-import ResetPass from "./pages/Auth/Resetpassword.jsx"
 import CustHome from "./componet/Dashboard/userDash/Home.jsx"
 import Cart from "./pages/cart.jsx"
 import Profile from "./pages/Profile.jsx"
@@ -37,8 +35,6 @@ export default function App() {
                 <Route path="login" element={<Login />} />
                 <Route path="signup" element={<SignUp />} />
                 <Route path="forgotpassword" element={<Forgot />} />
-                <Route path="emailverify" element={<EmailVerify />} />
-                <Route path="resetpassword" element={<ResetPass />} />
             </Route>
 
             <Route

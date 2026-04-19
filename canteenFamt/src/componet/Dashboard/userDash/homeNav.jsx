@@ -1,4 +1,4 @@
-import { ClipboardList, Home, LogOut, ShoppingCart } from 'lucide-react';
+import { ClipboardList, Home, LogOut, ShoppingCart, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from "../../../context/AuthContext.jsx";
 import { useEffect, useState } from "react";
@@ -72,13 +72,17 @@ function HomeNav({ activeTab = "home" }) {
                     </button>
                     <button
                         onClick={() => navigate("/profile")}
-                        className="w-9 h-9 rounded-full overflow-hidden border-2 border-[#FBA808] bg-[#F8FAFC]"
+                        className="w-9 h-9 rounded-full overflow-hidden border-2 border-[#FBA808] bg-[#F8FAFC] flex items-center justify-center text-[#0F6657]"
                     >
-                        <img
-                            src={profile?.profileImage || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=300"}
-                            alt="Profile"
-                            className="w-full h-full object-cover"
-                        />
+                        {profile?.profileImage ? (
+                            <img
+                                src={profile.profileImage}
+                                alt="Profile"
+                                className="w-full h-full object-cover"
+                            />
+                        ) : (
+                            <User size={20} />
+                        )}
                     </button>
                 </div>
             </div>

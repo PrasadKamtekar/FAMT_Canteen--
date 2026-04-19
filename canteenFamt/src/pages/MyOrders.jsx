@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import SubPageHeader from "../componet/Dashboard/userDash/SubPageHeader.jsx";
-import { subscribeToUserOrders } from "../utils/firebaseUtils.js";
+import { subscribeToUserOrders, updateOrderStatus } from "../utils/firebaseUtils.js";
 import { useAuth } from "../context/AuthContext.jsx";
+import toast from "react-hot-toast";
 
 function MyOrders() {
   const { currentUser } = useAuth();
@@ -14,6 +15,18 @@ function MyOrders() {
     });
     return () => unsubscribe();
   }, [currentUser]);
+
+  const handleCancelOrder = async (orderId) => {
+    if (window.confirm("Are you sure you want to cancel this order?")) {
+      try {
+        await updateOrderStatus(orderId, "cancelled");
+        toast.success("Order cancelled successfully");
+      } catch (error) {
+        toast.error("Failed to cancel order");
+        console.error(error);
+      }
+    }
+  };
 
   return (
     <div className="min-h-[100dvh] bg-[#eeeef1]">
@@ -28,7 +41,11 @@ function MyOrders() {
                 </p>
                 <p className="text-gray-700">
                   Status:{" "}
-                  <span className={`font-semibold ${order.status === "completed" ? "text-green-600" : "text-[#0F6657]"}`}>
+                  <span className={`font-semibold ${
+                    order.status === "completed" ? "text-green-600" :
+                    order.status === "cancelled" ? "text-red-500" :
+                    "text-[#0F6657]"
+                  }`}>
                     {(order.status || "pending").toUpperCase()}
                   </span>
                 </p>
@@ -42,8 +59,16 @@ function MyOrders() {
                 ))}
               </div>
 
-              <div className="mt-3 pt-3 border-t border-gray-200 text-right text-[#0F6657] font-semibold">
-                Total: Rs {order.total}
+              <div className="mt-3 pt-3 border-t border-gray-200 flex justify-between items-center text-[#0F6657] font-semibold">
+                <span>Total: Rs {order.total}</span>
+                {order.status === "pending" && (
+                  <button
+                    onClick={() => handleCancelOrder(order.id)}
+                    className="text-sm font-medium text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded transition-colors"
+                  >
+                    Cancel Order
+                  </button>
+                )}
               </div>
             </div>
           ))}

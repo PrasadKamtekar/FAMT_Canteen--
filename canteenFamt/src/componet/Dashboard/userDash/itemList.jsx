@@ -20,12 +20,14 @@ function ItemList({ item }) {
     }
   };
 
+  const isAvailable = item.isAvailable !== false;
+
   return (
-    <div className="w-full bg-white rounded-xl p-3 sm:p-4 flex gap-3 shadow-sm border border-gray-100">
+    <div className={`w-full rounded-xl p-3 sm:p-4 flex gap-3 shadow-sm border border-gray-100 ${!isAvailable ? "bg-gray-50 opacity-80" : "bg-white"}`}>
       <div className="w-24 h-24 sm:w-28 sm:h-28 shrink-0">
         <img
           src={item.image || "https://thumbs.dreamstime.com/b/misal-pav-buns-smeared-butter-served-spicy-sprouts-curry-trail-mixture-chopped-onions-chilli-lemons-bun-indian-starter-171494146.jpg?w=768"}
-          className="h-full w-full rounded-lg object-cover"
+          className={`h-full w-full rounded-lg object-cover ${!isAvailable ? "grayscale" : ""}`}
         />
       </div>
 
@@ -37,9 +39,14 @@ function ItemList({ item }) {
 
         <button
           onClick={handleAddToCart}
-          className="bg-[#E6F7F3] w-full rounded-lg text-[#00AD8F] py-2 text-sm sm:text-base transition-transform duration-150 active:scale-95 active:bg-[#d9f2ec]"
+          disabled={!isAvailable}
+          className={`w-full rounded-lg py-2 text-sm sm:text-base transition-transform duration-150 ${
+            isAvailable 
+              ? "bg-[#E6F7F3] text-[#00AD8F] active:scale-95 active:bg-[#d9f2ec]" 
+              : "bg-gray-200 text-gray-500 cursor-not-allowed"
+          }`}
         >
-          Add to cart
+          {isAvailable ? "Add to cart" : "Item Not Available"}
         </button>
       </div>
     </div>

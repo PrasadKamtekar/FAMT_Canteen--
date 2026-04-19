@@ -9,6 +9,8 @@ function OrdersPanel({ orders, onStatusChange }) {
           const statusClass =
             status === "completed"
               ? "bg-[#DFF5EC] text-[#1F7A63]"
+              : status === "cancelled"
+              ? "bg-gray-200 text-gray-600"
               : "bg-[#ffeaf2] text-[#e31837]";
 
           return (
@@ -30,7 +32,7 @@ function OrdersPanel({ orders, onStatusChange }) {
                 <div className="flex flex-col items-end gap-[0.6vh]">
                   <div className="text-gray-500 text-[0.9vw]">Status</div>
                   <span className={`rounded-[0.6vw] px-[0.8vw] py-[0.3vh] text-[0.86vw] font-semibold ${statusClass}`}>
-                    {status === "completed" ? "Completed" : "Pending"}
+                    {status === "completed" ? "Completed" : status === "cancelled" ? "Cancelled" : "Pending"}
                   </span>
                 </div>
               </div>
@@ -54,26 +56,28 @@ function OrdersPanel({ orders, onStatusChange }) {
                   <div className="text-[#0F6657] font-semibold text-[1vw]">
                     Total: Rs {order.total}
                   </div>
-                  <div className="flex gap-[0.4vw]">
-                    <button
-                      onClick={() => onStatusChange(order.id, "pending")}
-                      className={`rounded-[0.45vw] px-[0.7vw] py-[0.2vh] text-[0.83vw] transition-all duration-150 active:scale-[0.98] ${status === "pending"
-                        ? "bg-[#e31837] text-white shadow-sm hover:bg-[#c81430]"
-                        : "bg-[#ffeaf2] text-[#e31837] hover:bg-[#ffd6e6]"
-                        }`}
-                    >
-                      Mark Pending
-                    </button>
-                    <button
-                      onClick={() => onStatusChange(order.id, "completed")}
-                      className={`rounded-[0.45vw] px-[0.7vw] py-[0.2vh] text-[0.83vw] transition-all duration-150 active:scale-[0.98] ${status === "completed"
-                        ? "bg-[#1F7A63] text-white shadow-sm hover:bg-[#18624f]"
-                        : "bg-[#DFF5EC] text-[#1F7A63] hover:bg-[#cfeee0]"
-                        }`}
-                    >
-                      Mark Completed
-                    </button>
-                  </div>
+                  {status !== "cancelled" && (
+                    <div className="flex gap-[0.4vw]">
+                      <button
+                        onClick={() => onStatusChange(order.id, "pending")}
+                        className={`rounded-[0.45vw] px-[0.7vw] py-[0.2vh] text-[0.83vw] transition-all duration-150 active:scale-[0.98] ${status === "pending"
+                          ? "bg-[#e31837] text-white shadow-sm hover:bg-[#c81430]"
+                          : "bg-[#ffeaf2] text-[#e31837] hover:bg-[#ffd6e6]"
+                          }`}
+                      >
+                        Mark Pending
+                      </button>
+                      <button
+                        onClick={() => onStatusChange(order.id, "completed")}
+                        className={`rounded-[0.45vw] px-[0.7vw] py-[0.2vh] text-[0.83vw] transition-all duration-150 active:scale-[0.98] ${status === "completed"
+                          ? "bg-[#1F7A63] text-white shadow-sm hover:bg-[#18624f]"
+                          : "bg-[#DFF5EC] text-[#1F7A63] hover:bg-[#cfeee0]"
+                          }`}
+                      >
+                        Mark Completed
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

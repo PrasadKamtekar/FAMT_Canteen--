@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { User } from 'lucide-react';
 import SubPageHeader from "../componet/Dashboard/userDash/SubPageHeader.jsx";
 import { getUserProfile, updateUserProfile } from "../utils/firebaseUtils.js";
 import { useAuth } from "../context/AuthContext.jsx";
@@ -16,7 +17,7 @@ function Profile() {
     const [profile, setProfile] = useState({
         username: displayName,
         email: currentUser?.email || "",
-        profileImage: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=300"
+        profileImage: ""
     });
 
     useEffect(() => {
@@ -92,23 +93,40 @@ function Profile() {
                             </button>
                         </div>
                         <div className="w-full flex flex-col items-center mt-2 mb-4">
-                            <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full overflow-hidden border-2 border-[#FBA808]">
-                                <img
-                                    src={profile.profileImage}
-                                    alt="Profile"
-                                    className="w-full h-full object-cover"
-                                />
+                            <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full overflow-hidden border-2 border-[#FBA808] flex items-center justify-center bg-gray-100">
+                                {profile.profileImage ? (
+                                    <img
+                                        src={profile.profileImage}
+                                        alt="Profile"
+                                        className="w-full h-full object-cover"
+                                    />
+                                ) : (
+                                    <User size={64} className="text-gray-400" />
+                                )}
                             </div>
                             {isEditing && (
-                                <label className="mt-3 text-sm text-[#0F6657] font-medium cursor-pointer">
-                                    Change Profile Photo
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        className="hidden"
-                                        onChange={handleImageUpload}
-                                    />
-                                </label>
+                                <div className="flex gap-4 mt-3">
+                                    <label className="text-sm text-[#0F6657] font-medium cursor-pointer hover:underline">
+                                        {profile.profileImage ? "Change Photo" : "Upload Photo"}
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            className="hidden"
+                                            onChange={handleImageUpload}
+                                        />
+                                    </label>
+                                    {profile.profileImage && (
+                                        <button
+                                            onClick={() => {
+                                                setProfile((prev) => ({ ...prev, profileImage: "" }));
+                                                setImageFile(null);
+                                            }}
+                                            className="text-sm text-red-500 font-medium cursor-pointer hover:underline"
+                                        >
+                                            Remove Photo
+                                        </button>
+                                    )}
+                                </div>
                             )}
                         </div>
                         <div className="flex flex-col justify-center items-center gap-3 w-full">

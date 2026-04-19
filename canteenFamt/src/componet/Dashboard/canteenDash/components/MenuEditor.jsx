@@ -173,7 +173,7 @@ function MenuEditor({ items, onAdd, onUpdate, onDelete, editingItem, setEditingI
         {items.map((item) => (
           <div
             key={item.id}
-            className="bg-white border border-gray-200 rounded-lg px-4 py-3 flex items-center justify-between gap-3"
+            className={`bg-white border border-gray-200 rounded-lg px-4 py-3 flex items-center justify-between gap-3 ${item.isAvailable === false ? "opacity-60 grayscale" : ""}`}
           >
             <div className="flex items-center gap-3">
               {item.image ? (
@@ -192,6 +192,16 @@ function MenuEditor({ items, onAdd, onUpdate, onDelete, editingItem, setEditingI
             </div>
 
             <div className="flex gap-2">
+              <button
+                onClick={() => onUpdate({ ...item, isAvailable: item.isAvailable === false ? true : false }, null)}
+                className={`border rounded px-3 py-1 text-sm font-medium transition-colors ${
+                  item.isAvailable === false
+                    ? "border-green-200 text-green-600 hover:bg-green-50"
+                    : "border-yellow-200 text-yellow-600 hover:bg-yellow-50"
+                }`}
+              >
+                {item.isAvailable === false ? "Mark Available" : "Mark Unavailable"}
+              </button>
               <button
                 onClick={() => setEditingItem(item)}
                 className="border border-gray-300 hover:bg-gray-50 text-gray-700 rounded px-3 py-1 text-sm font-medium transition-colors"
