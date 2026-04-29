@@ -173,9 +173,9 @@ function MenuEditor({ items, onAdd, onUpdate, onDelete, editingItem, setEditingI
         {items.map((item) => (
           <div
             key={item.id}
-            className={`bg-white border border-gray-200 rounded-lg px-4 py-3 flex items-center justify-between gap-3 ${item.isAvailable === false ? "opacity-60 grayscale" : ""}`}
+            className={`bg-white border border-gray-200 rounded-lg px-4 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 ${item.isAvailable === false ? "opacity-60 grayscale" : ""}`}
           >
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 w-full sm:w-auto">
               {item.image ? (
                 <img
                   src={item.image}
@@ -191,7 +191,7 @@ function MenuEditor({ items, onAdd, onUpdate, onDelete, editingItem, setEditingI
               </div>
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2 w-full sm:w-auto mt-2 sm:mt-0 justify-start sm:justify-end">
               <button
                 onClick={() => onUpdate({ ...item, isAvailable: item.isAvailable === false ? true : false }, null)}
                 className={`border rounded px-3 py-1 text-sm font-medium transition-colors ${

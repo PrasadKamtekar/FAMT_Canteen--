@@ -9,9 +9,9 @@ function EarningsPanel({ dailyEarnings, totalEarnings, completedCount, pendingCo
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {cards.map((card) => (
-        <div key={card.label} className="bg-white rounded-[0.8vw] shadow-sm p-[1.5vw]">
-          <h2 className="text-gray-500 mb-[0.8vh]">{card.label}</h2>
-          <p className={`text-[1.5vw] font-semibold ${card.accent}`}>{card.value}</p>
+        <div key={card.label} className="bg-white rounded-xl shadow-sm p-5 sm:p-6">
+          <h2 className="text-gray-500 mb-2">{card.label}</h2>
+          <p className={`text-2xl sm:text-3xl font-semibold ${card.accent}`}>{card.value}</p>
         </div>
       ))}
     </div>

@@ -106,7 +106,7 @@ function CanteenHome() {
   return (
     <div className="min-h-[100dvh] bg-[#EDEEEF]">
       <AdminTopBar activeTab={activeTab} setActiveTab={setActiveTab} onLogout={handleLogout} />
-      <div className="p-[2vw]">
+      <div className="p-4 sm:p-6">
         {activeTab === "menu" && (
           <MenuEditor
             items={menuItems}
