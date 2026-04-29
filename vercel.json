@@ -1,0 +1,5 @@
+{
+  "buildCommand": "cd canteenFamt && npm run build",
+  "installCommand": "cd canteenFamt && npm install",
+  "outputDirectory": "canteenFamt/dist"
+}
